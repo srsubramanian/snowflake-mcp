@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "snowflake-mcp-sso": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/absolute/path/to/your/snowflake-mcp",
+        "run",
+        "snowflake-mcp-minimal",
+        "--service-config-file",
+        "configs/minimal.yaml",
+        "--authenticator",
+        "externalbrowser"
+      ],
+      "env": {
+        "SNOWFLAKE_ACCOUNT": "your-account-identifier",
+        "SNOWFLAKE_USER": "your-username",
+        "SNOWFLAKE_WAREHOUSE": "your-warehouse",
+        "SNOWFLAKE_ROLE": "your-role"
+      }
+    }
+  }
+}

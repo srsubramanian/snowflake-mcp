@@ -156,7 +156,13 @@ def get_login_params() -> Dict[str, List[Any]]:
         "authenticator": [
             "--authenticator",
             None,
-            """Authenticator for Snowflake (see documentation for full list of options)""",
+            """Authenticator for Snowflake. Options:
+- snowflake (default): Username/password authentication
+- externalbrowser: SSO/SAML authentication via web browser
+- oauth: OAuth authentication (requires token)
+- username_password_mfa: Username/password with MFA
+- https://<okta_account>.okta.com: Native Okta authentication
+- Key pair auth: Automatically detected when private_key is provided""",
         ],
         "connection_name": [
             "--connection-name",

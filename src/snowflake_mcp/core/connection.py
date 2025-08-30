@@ -62,6 +62,13 @@ class SnowflakeConnectionManager:
         """
         Get a persistent Snowflake connection.
 
+        Supports multiple authentication methods:
+        - Username/password
+        - Key pair authentication
+        - OAuth
+        - External browser (SSO/SAML)
+        - Multi-factor authentication
+
         Parameters
         ----------
         session_parameters : dict, optional
@@ -94,8 +101,7 @@ class SnowflakeConnectionManager:
                     k: v for k, v in connection_params.items() if v is not None
                 }
             else:
-                logger.info("Using external authentication")
-                connection_params = self.connection_params.copy()
+                connection_params = self._prepare_connection_params()
 
             # Handle default connection name if no params provided
             if not connection_params:
@@ -104,6 +110,9 @@ class SnowflakeConnectionManager:
                         "SNOWFLAKE_DEFAULT_CONNECTION_NAME", "default"
                     ),
                 }
+
+            # Log authentication method being used (without sensitive info)
+            self._log_authentication_method(connection_params)
 
             connection = connect(
                 **connection_params,
@@ -118,6 +127,93 @@ class SnowflakeConnectionManager:
         except Exception as e:
             logger.error(f"Error establishing persistent Snowflake connection: {e}")
             raise ConnectionError(f"Failed to establish connection: {e}")
+
+    def _prepare_connection_params(self) -> Dict[str, Any]:
+        """
+        Prepare connection parameters with proper handling for different auth methods.
+        
+        Returns
+        -------
+        Dict[str, Any]
+            Cleaned connection parameters
+        """
+        connection_params = self.connection_params.copy()
+        authenticator = connection_params.get("authenticator", "snowflake")
+        
+        # Handle externalbrowser authentication
+        if authenticator == "externalbrowser":
+            # For externalbrowser, we don't need password
+            connection_params.pop("password", None)
+            connection_params.pop("private_key", None)
+            connection_params.pop("private_key_file", None)
+            connection_params.pop("private_key_pwd", None)
+            logger.info("Configured for external browser authentication (SSO/SAML)")
+        
+        # Handle OAuth authentication
+        elif authenticator == "oauth":
+            # OAuth requires token instead of password
+            if "password" in connection_params and not connection_params.get("token"):
+                # Treat password as OAuth token if explicitly using oauth authenticator
+                connection_params["token"] = connection_params.pop("password")
+            connection_params.pop("private_key", None)
+            connection_params.pop("private_key_file", None)
+            connection_params.pop("private_key_pwd", None)
+            logger.info("Configured for OAuth authentication")
+        
+        # Handle key pair authentication
+        elif connection_params.get("private_key") or connection_params.get("private_key_file"):
+            # For key pair auth, remove password
+            connection_params.pop("password", None)
+            connection_params["authenticator"] = "snowflake"  # Key pair uses default authenticator
+            logger.info("Configured for key pair authentication")
+        
+        # Handle standard username/password
+        elif authenticator == "snowflake" or not authenticator:
+            logger.info("Configured for username/password authentication")
+        
+        # Handle MFA
+        elif authenticator == "username_password_mfa":
+            logger.info("Configured for username/password with MFA authentication")
+        
+        # Handle Okta
+        elif authenticator.startswith("https://") and ".okta.com" in authenticator:
+            connection_params.pop("private_key", None)
+            connection_params.pop("private_key_file", None)
+            connection_params.pop("private_key_pwd", None)
+            logger.info("Configured for Okta authentication")
+        
+        else:
+            logger.info(f"Configured for custom authentication: {authenticator}")
+        
+        # Remove None values to avoid passing them to the connector
+        return {k: v for k, v in connection_params.items() if v is not None}
+    
+    def _log_authentication_method(self, connection_params: Dict[str, Any]) -> None:
+        """
+        Log the authentication method being used (without sensitive information).
+        
+        Parameters
+        ---------- 
+        connection_params : Dict[str, Any]
+            Connection parameters
+        """
+        authenticator = connection_params.get("authenticator", "snowflake")
+        account = connection_params.get("account", "unknown")
+        user = connection_params.get("user", "unknown")
+        
+        if authenticator == "externalbrowser":
+            logger.info(f"Authenticating with external browser SSO for user '{user}' on account '{account}'")
+            logger.info("Browser will open for authentication. Please complete SSO login in the browser.")
+        elif authenticator == "oauth":
+            logger.info(f"Authenticating with OAuth for user '{user}' on account '{account}'")
+        elif connection_params.get("private_key") or connection_params.get("private_key_file"):
+            logger.info(f"Authenticating with key pair for user '{user}' on account '{account}'")
+        elif authenticator == "username_password_mfa":
+            logger.info(f"Authenticating with username/password + MFA for user '{user}' on account '{account}'")
+        elif authenticator.startswith("https://") and ".okta.com" in authenticator:
+            logger.info(f"Authenticating with Okta for user '{user}' on account '{account}'")
+        else:
+            logger.info(f"Authenticating with {authenticator} for user '{user}' on account '{account}'")
 
     @contextmanager
     def get_connection(

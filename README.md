@@ -94,11 +94,14 @@ The server supports all standard Snowflake connection parameters:
 
 ### Authentication Methods
 
+- **External Browser (SSO/SAML)** - ✨ **Recommended for Enterprise**
 - Username/password
-- Key pair authentication
+- Key pair authentication 
 - OAuth
-- Single Sign-On (SSO)
 - Multi-factor authentication (MFA)
+- Native Okta
+
+📚 **See [AUTHENTICATION.md](docs/AUTHENTICATION.md) for detailed setup instructions**
 
 ## Available Tools
 
