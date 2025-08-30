@@ -12,6 +12,7 @@ from pydantic import Field
 
 from snowflake_mcp.core.exceptions import SnowflakeException
 from snowflake_mcp.core.connection import SnowflakeConnectionManager
+from snowflake_mcp.prompts.sql_prompts import query_tool_prompt
 
 
 def run_query(statement: str, connection_manager: SnowflakeConnectionManager):
@@ -55,7 +56,7 @@ def initialize_query_manager_tool(server: FastMCP, connection_manager: Snowflake
     
     @server.tool(
         name="run_snowflake_query",
-        description="Execute SQL query on Snowflake and return results",
+        description=query_tool_prompt,
     )
     def run_query_tool(
         statement: Annotated[

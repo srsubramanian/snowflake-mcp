@@ -13,6 +13,13 @@ from snowflake.core import CreateMode, Root
 
 from snowflake_mcp.models.snowflake_objects import ObjectMetadata, SnowflakeClasses
 from snowflake_mcp.core.exceptions import SnowflakeException
+from snowflake_mcp.prompts.object_prompts import (
+    create_object_prompt,
+    create_or_alter_object_prompt,
+    describe_object_prompt,
+    drop_object_prompt,
+    list_objects_prompt,
+)
 
 
 def get_class_name(object_type: Any) -> str:
@@ -110,21 +117,6 @@ def parse_object(target_object: Any, obj_type: Type[ObjectMetadata], tool_name: 
     return target_object
 
 
-# Object management prompts (inline for now, can be moved to separate file if needed)
-def create_object_prompt(obj_name: str) -> str:
-    return f"Create a {obj_name} in Snowflake"
-
-def create_or_alter_object_prompt(obj_name: str) -> str:
-    return f"Create or alter a {obj_name} in Snowflake"
-
-def describe_object_prompt(obj_name: str) -> str:
-    return f"Describe a {obj_name} in Snowflake"
-
-def drop_object_prompt(obj_name: str) -> str:
-    return f"Drop a {obj_name} from Snowflake"
-
-def list_objects_prompt(obj_name: str) -> str:
-    return f"List {obj_name}s in Snowflake"
 
 
 def initialize_object_manager_tools(server: FastMCP, root: Root):

@@ -12,6 +12,10 @@ from pydantic import Field
 from snowflake_mcp.models.semantic_models import SemanticExpression
 from snowflake_mcp.core.exceptions import SnowflakeException
 from snowflake_mcp.core.connection import SnowflakeConnectionManager, execute_query
+from snowflake_mcp.prompts.semantic_prompts import (
+    query_semantic_view_prompt,
+    write_semantic_view_query_prompt,
+)
 
 
 def list_semantic_views(
@@ -447,7 +451,7 @@ def initialize_semantic_manager_tools(server: FastMCP, connection_manager: Snowf
 
     @server.tool(
         name="write_semantic_view_query_tool",
-        description="Generate a semantic view query without executing it",
+        description=write_semantic_view_query_prompt,
     )
     def write_semantic_view_tool(
         database_name: Annotated[
@@ -517,7 +521,7 @@ def initialize_semantic_manager_tools(server: FastMCP, connection_manager: Snowf
 
     @server.tool(
         name="query_semantic_view",
-        description="Execute a query on a semantic view and return results",
+        description=query_semantic_view_prompt,
     )
     def query_semantic_view_tool(
         database_name: Annotated[
