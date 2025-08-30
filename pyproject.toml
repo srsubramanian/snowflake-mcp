@@ -33,3 +33,6 @@ dev = [
 
 [project.scripts]
 mcp-server-snowflake-minimal = "mcp_server_snowflake:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mcp_server_snowflake"]
