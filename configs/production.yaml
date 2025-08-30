@@ -1,0 +1,29 @@
+# Production Snowflake MCP Server Configuration
+# Restrictive settings for production environment
+
+sql_statement_permissions:
+  # Read operations only (safe for production)
+  - select: true
+  - show: true
+  - describe: true
+  - use: true
+  
+  # Object management operations (disabled for safety)
+  - create: false
+  - alter: false
+  - drop: false
+  
+  # Data modification operations (disabled for safety)
+  - insert: false
+  - update: false
+  - delete: false
+  - truncate: false
+  - merge: false
+  - copy: false
+  
+  # Administrative operations (disabled)
+  - grant: false
+  - revoke: false
+  
+  # Disallow unknown statement types in production
+  - unknown: false

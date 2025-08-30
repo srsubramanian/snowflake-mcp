@@ -1,0 +1,30 @@
+# Development Snowflake MCP Server Configuration
+# More permissive settings for development environment
+
+sql_statement_permissions:
+  # Read operations
+  - select: true
+  - show: true
+  - describe: true
+  - use: true
+  - explain: true
+  
+  # Object management operations (enabled for development)
+  - create: true
+  - alter: true
+  - drop: true
+  
+  # Data modification operations (enabled for development)
+  - insert: true
+  - update: true
+  - delete: true
+  - truncate: true
+  - merge: true
+  - copy: true
+  
+  # Administrative operations (limited)
+  - grant: false
+  - revoke: false
+  
+  # Allow unknown statement types in development
+  - unknown: true

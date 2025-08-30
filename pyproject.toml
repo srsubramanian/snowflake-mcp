@@ -32,7 +32,10 @@ dev = [
 ]
 
 [project.scripts]
-mcp-server-snowflake-minimal = "mcp_server_snowflake:main"
+snowflake-mcp-minimal = "snowflake_mcp:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["mcp_server_snowflake"]
+packages = ["src/snowflake_mcp"]
+
+[tool.hatch.metadata]
+allow-direct-references = true

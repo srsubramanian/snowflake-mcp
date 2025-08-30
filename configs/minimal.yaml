@@ -1,0 +1,30 @@
+# Minimal Snowflake MCP Server Configuration
+
+# SQL Statement Permissions
+# Define which SQL statement types are allowed or disallowed
+sql_statement_permissions:
+  # Basic read operations (recommended for minimal setup)
+  - select: true
+  - show: true
+  - describe: true
+  - use: true
+  
+  # Object management operations (enable as needed)
+  - create: false  # Set to true to allow object creation
+  - alter: false   # Set to true to allow object alteration
+  - drop: false    # Set to true to allow object deletion
+  
+  # Data modification operations (enable with caution)
+  - insert: false  # Set to true to allow data insertion
+  - update: false  # Set to true to allow data updates
+  - delete: false  # Set to true to allow data deletion
+  - truncate: false # Set to true to allow table truncation
+  - merge: false   # Set to true to allow merge operations
+  - copy: false    # Set to true to allow copy operations
+  
+  # Administrative operations (use with extreme caution)
+  - grant: false   # Set to true to allow grant operations
+  - revoke: false  # Set to true to allow revoke operations
+  
+  # Handle unknown statement types
+  - unknown: false # Set to true to allow unknown SQL statement types
