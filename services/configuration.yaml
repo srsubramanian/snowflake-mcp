@@ -1,0 +1,42 @@
+# Snowflake Minimal MCP Server Configuration
+# This configuration file defines SQL statement permissions for the minimal MCP server
+
+# SQL Statement Permissions
+# Define which SQL statement types are allowed or disallowed
+# Supported statement types: select, insert, update, delete, create, drop, alter, truncate, merge, copy, call, show, describe, explain, use, grant, revoke, etc.
+sql_statement_permissions:
+  # Allow SELECT statements for querying data
+  - select: true
+  
+  # Allow SHOW statements for listing objects
+  - show: true
+  
+  # Allow DESCRIBE statements for getting object details
+  - describe: true
+  
+  # Allow USE statements for changing context
+  - use: true
+  
+  # Object management permissions
+  # Uncomment and set to true to allow object creation/modification
+  # - create: false
+  # - alter: false
+  # - drop: false
+  
+  # Data modification permissions
+  # Uncomment and set to true to allow data changes
+  # - insert: false
+  # - update: false
+  # - delete: false
+  # - truncate: false
+  # - merge: false
+  # - copy: false
+  
+  # Administrative permissions
+  # Uncomment and set to true to allow administrative operations
+  # - grant: false
+  # - revoke: false
+  
+  # Unknown statement handling
+  # Set to true to allow unknown statement types
+  - unknown: false
