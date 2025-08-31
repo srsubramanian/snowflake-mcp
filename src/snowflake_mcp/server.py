@@ -169,7 +169,7 @@ def initialize_tools(snowflake_service: SnowflakeService, server: FastMCP):
         initialize_object_manager_tools(server, snowflake_service.connection_manager.root)
 
         # Add tools for query manager
-        initialize_query_manager_tool(server, snowflake_service.connection_manager)
+        initialize_query_manager_tool(server, snowflake_service.connection_manager, snowflake_service.config)
 
         # Add tools for semantic manager
         initialize_semantic_manager_tools(server, snowflake_service.connection_manager)

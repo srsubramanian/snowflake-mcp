@@ -51,7 +51,7 @@ def run_query(statement: str, connection_manager: SnowflakeConnectionManager):
         )
 
 
-def initialize_query_manager_tool(server: FastMCP, connection_manager: SnowflakeConnectionManager):
+def initialize_query_manager_tool(server: FastMCP, connection_manager: SnowflakeConnectionManager, config=None):
     """Initialize SQL query execution tools for the MCP server."""
     
     @server.tool(
@@ -64,6 +64,21 @@ def initialize_query_manager_tool(server: FastMCP, connection_manager: Snowflake
             Field(description="SQL query to execute"),
         ],
     ):
+        # Validate SQL permissions if config is provided
+        if config and config.sql_statement_permissions:
+            statement_type, is_valid = validate_sql_type(
+                statement, 
+                config.sql_statement_permissions.allowed,
+                config.sql_statement_permissions.disallowed
+            )
+            
+            if not is_valid:
+                raise SnowflakeException(
+                    tool="run_snowflake_query",
+                    message=f"SQL statement type '{statement_type}' is not permitted by configuration",
+                    status_code=403,
+                )
+        
         return run_query(statement, connection_manager)
 
 
@@ -82,25 +97,62 @@ def get_statement_type(sql_string):
         return "Unknown"
 
 
+def map_statement_type_to_config(sql_string: str, statement_type: str) -> str:
+    """
+    Map SQLGlot statement types to configuration-friendly names.
+    
+    This function handles the mapping between SQLGlot's AST node names 
+    and the more intuitive permission names used in configuration files.
+    """
+    statement_lower = statement_type.lower()
+    
+    # Handle Snowflake-specific commands that SQLGlot parses as "Command" or "Unknown"
+    sql_upper = sql_string.strip().upper()
+    
+    if statement_lower == "command" or statement_lower == "unknown":
+        if sql_upper.startswith("SHOW"):
+            return "show"
+        elif sql_upper.startswith("DESCRIBE") or sql_upper.startswith("DESC"):
+            return "describe"
+        elif sql_upper.startswith("USE"):
+            return "use"
+        elif sql_upper.startswith("EXPLAIN"):
+            return "explain"
+        elif sql_upper.startswith("GRANT"):
+            return "grant"
+        elif sql_upper.startswith("REVOKE"):
+            return "revoke"
+        elif sql_upper.startswith("SET"):
+            return "set"
+        elif sql_upper.startswith("CALL"):
+            return "call"
+        else:
+            return "unknown"
+    
+    # Direct mapping for standard SQL statement types
+    return statement_lower
+
+
 def validate_sql_type(
     sql_string: str, sql_allow_list: list[str], sql_disallow_list: list[str]
 ) -> tuple[str, bool]:
     """
     Validates a SQL statement type against a list of allowed and disallowed statement types.
     """
-    statement_type = get_statement_type(sql_string)
+    raw_statement_type = get_statement_type(sql_string)
+    statement_type = map_statement_type_to_config(sql_string, raw_statement_type)
     
     if "all" in sql_allow_list:
         # Escape hatch for allowing all statements if user elects to explicitly
         valid = True
-    elif statement_type.lower() in sql_disallow_list:
+    elif statement_type in sql_disallow_list:
         # Allow/Disallow lists should already be lowercase at load
         valid = False
-    elif statement_type.lower() in sql_allow_list:
+    elif statement_type in sql_allow_list:
         valid = True
     # There may be a new unmapped type that is not in the allow/disallow lists. 
     # If the user has set Unknown to True, allow it.
-    elif "unknown" in sql_allow_list:
+    elif statement_type == "unknown" and "unknown" in sql_allow_list:
         valid = True
     # User has not added any permissions, so we default to disallowing all statements
     elif len(sql_allow_list) == 0 and len(sql_disallow_list) == 0:

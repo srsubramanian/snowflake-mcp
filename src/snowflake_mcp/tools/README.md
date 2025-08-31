@@ -224,22 +224,37 @@ Executes SQL statements and returns results using dictionary cursors for easy ac
 
 ### SQL Permission Control
 
-SQL execution is controlled by the service configuration file. Statement types are validated using SQLGlot parsing:
+SQL execution is controlled by the service configuration file. Statement types are validated using SQLGlot parsing with intelligent mapping to handle Snowflake-specific commands:
 
-**Configuration Example (`services/configuration.yaml`):**
+**Configuration Example (`configs/minimal.yaml`):**
 ```yaml
 sql_statement_permissions:
   - select: true      # Allow SELECT statements
-  - show: true        # Allow SHOW commands  
-  - describe: true    # Allow DESCRIBE commands
-  - use: true         # Allow USE commands
+  - show: true        # Allow SHOW commands (SHOW TABLES, SHOW DATABASES, etc.)
+  - describe: true    # Allow DESCRIBE commands (DESCRIBE table, DESC view, etc.)
+  - use: true         # Allow USE commands (USE database, USE warehouse, etc.)
   - create: false     # Deny CREATE statements
   - drop: false       # Deny DROP statements  
   - insert: false     # Deny INSERT statements
   - update: false     # Deny UPDATE statements
   - delete: false     # Deny DELETE statements
+  - grant: false      # Deny GRANT statements
+  - revoke: false     # Deny REVOKE statements
   - unknown: false    # Deny unrecognized statement types
 ```
+
+**Statement Type Mapping:**
+The system intelligently maps SQLGlot AST node types to configuration-friendly names:
+- `Select` → `select`
+- `Create` → `create`
+- `Drop` → `drop`
+- `Insert` → `insert`
+- `Update` → `update`
+- `Delete` → `delete`
+- `Command` with `SHOW` → `show`
+- `Command` with `GRANT` → `grant`
+- `Unknown` with `DESCRIBE` → `describe`
+- `Unknown` with `USE` → `use`
 
 ### Supported Statement Types
 
